@@ -63,6 +63,10 @@ type State<T_HT> = {
 type Props<T_HT> = {
   highlightTransform: (
     highlight: T_ViewportHighlight<T_HT>,
+    index: number
+  ) => React$Element<*>,
+  highlightTransform: (
+    highlight: T_ViewportHighlight<T_HT>,
     index: number,
     setTip: (
       highlight: T_ViewportHighlight<T_HT>,
@@ -203,6 +207,19 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     );
   }
 
+  findOrCreateLabelLayer(page: number) {
+    const { textLayer } = this.viewer.getPageView(page - 1) || {};
+
+    if (!textLayer) {
+      return null;
+    }
+
+    return findOrCreateContainerLayer(
+      textLayer.textLayerDiv.parentNode,
+      "PdfHighlighter__labels-layer"
+    );
+  }
+
   groupHighlightsByPage(
     highlights: Array<T_HT>
   ): { [pageNumber: string]: Array<T_HT> } {
@@ -274,7 +291,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   renderHighlights(nextProps?: Props<T_HT>) {
-    const { highlightTransform, highlights } = nextProps || this.props;
+    const { highlightTransform, labelTransform, highlights } = nextProps || this.props;
 
     const { pdfDocument } = this.props;
 
@@ -284,6 +301,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
       const highlightLayer = this.findOrCreateHighlightLayer(pageNumber);
+      const labelLayer = this.findOrCreateLabelLayer(pageNumber);
 
       if (highlightLayer) {
         ReactDom.render(
@@ -326,6 +344,28 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
             )}
           </div>,
           highlightLayer
+        );
+      }
+
+      if (labelLayer) {
+        ReactDom.render(
+          <div>
+            {(highlightsByPage[String(pageNumber)] || []).map(
+              ({ position, id, ...highlight }, index) => {
+                const viewportHighlight: T_ViewportHighlight<T_HT> = {
+                  id,
+                  position: this.scaledPositionToViewport(position),
+                  ...highlight
+                };
+
+                return labelTransform(
+                  viewportHighlight,
+                  index,
+                );
+              }
+            )}
+          </div>,
+          labelLayer
         );
       }
     }

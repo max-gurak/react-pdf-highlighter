@@ -185,6 +185,13 @@ class App extends Component<Props, State> {
                     }}
                   />
                 )}
+                // labelTransform={(
+                //   highlight,
+                //   index
+                // ) => {
+                //   console.log("App, ", "labelTransform", highlight, index);
+                //   return <span>Test</span>;
+                // }}
                 highlightTransform={(
                   highlight,
                   index,
