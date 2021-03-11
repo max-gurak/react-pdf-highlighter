@@ -253,12 +253,12 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     this.setTip(highlight.position, content);
   }
 
-  scaledPositionToViewport({
+  scaledPositionToViewport = ({
     pageNumber,
     boundingRect,
     rects,
     usePdfCoordinates
-  }: T_ScaledPosition): T_Position {
+  }: T_ScaledPosition): T_Position => {
     const viewport = this.viewer.getPageView(pageNumber - 1).viewport;
 
     return {
