@@ -98,7 +98,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   State<T_HT>
 > {
   static defaultProps = {
-    pdfScaleValue: "auto"
+    pdfScaleValue: "auto",
+    labelTransform: () => null
   };
 
   state: State<T_HT> = {
@@ -179,7 +180,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
         eventBus: this.eventBus,
         enhanceTextSelection: true,
         removePageBorders: true,
-        linkService: this.linkService
+        linkService: this.linkService,
+        textLayerMode: 2
       });
 
     this.linkService.setDocument(pdfDocument);
@@ -268,7 +270,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       ),
       pageNumber
     };
-  }
+  };
 
   viewportPositionToScaled({
     pageNumber,
@@ -291,7 +293,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   renderHighlights(nextProps?: Props<T_HT>) {
-    const { highlightTransform, labelTransform, highlights } = nextProps || this.props;
+    const { highlightTransform, labelTransform, highlights } =
+      nextProps || this.props;
 
     const { pdfDocument } = this.props;
 
@@ -358,10 +361,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
                   ...highlight
                 };
 
-                return labelTransform(
-                  viewportHighlight,
-                  index,
-                );
+                return labelTransform(viewportHighlight, index);
               }
             )}
           </div>,
