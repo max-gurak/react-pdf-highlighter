@@ -241,7 +241,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 
     return findOrCreateContainerLayer(
       textLayer.textLayerDiv.parentNode,
-      "PdfHighlighter__definition-layer"
+      "PdfHighlighter__definitions-layer"
     );
   }
 
@@ -316,19 +316,14 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   renderHighlights(nextProps?: Props<T_HT>) {
-    const { highlightTransform, labelTransform, definitionTransform, highlights } =
-      nextProps || this.props;
-
+    const { highlightTransform, labelTransform, highlights } = nextProps || this.props;
     const { pdfDocument } = this.props;
-
     const { tip, scrolledToHighlightId } = this.state;
-
     const highlightsByPage = this.groupHighlightsByPage(highlights);
 
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
       const highlightLayer = this.findOrCreateHighlightLayer(pageNumber);
       const labelLayer = this.findOrCreateLabelLayer(pageNumber);
-      const definitionLayer = this.findOrCreateDefinitionLayer(pageNumber);
 
       if (highlightLayer) {
         ReactDom.render(
@@ -386,25 +381,6 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
                 };
 
                 return labelTransform(viewportHighlight, index);
-              }
-            )}
-          </div>,
-          labelLayer
-        );
-      }
-
-      if (definitionLayer) {
-        ReactDom.render(
-          <div>
-            {(highlightsByPage[String(pageNumber)] || []).map(
-              ({ position, id, ...highlight }, index) => {
-                const viewportHighlight: T_ViewportHighlight<T_HT> = {
-                  id,
-                  position: this.scaledPositionToViewport(position),
-                  ...highlight
-                };
-
-                return definitionTransform(viewportHighlight, index);
               }
             )}
           </div>,
