@@ -415,9 +415,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   renderDefinitions(nextProps?: Props<T_HT>) {
-    const { definitionTransform, highlights } = nextProps || this.props;
+    const { definitionTransform, definitions } = nextProps || this.props;
     const { pdfDocument } = this.props;
-    const highlightsByPage = this.groupHighlightsByPage(highlights);
+    const definitionsByPage = this.groupHighlightsByPage(definitions);
 
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
       const definitionLayer = this.findOrCreateDefinitionLayer(pageNumber);
@@ -425,7 +425,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       if (definitionLayer) {
         ReactDom.render(
           <div>
-            {(highlightsByPage[String(pageNumber)] || []).map(
+            {(definitionsByPage[String(pageNumber)] || []).map(
               ({ position, id, ...highlight }, index) => {
                 const viewportHighlight: T_ViewportHighlight<T_HT> = {
                   id,
