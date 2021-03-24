@@ -62,7 +62,7 @@ type State<T_HT> = {
 
 type Props<T_HT> = {
   definitionTransform: (
-    highlight: T_ViewportHighlight<T_HT>,
+    definition: T_ViewportHighlight<T_HT>,
     index: number
   ) => React$Element<*>,
   labelTransform: (
@@ -82,6 +82,7 @@ type Props<T_HT> = {
     isScrolledTo: boolean
   ) => React$Element<*>,
   highlights: Array<T_HT>,
+  definitions: Array<T_HT>,
   onScrollChange: () => void,
   scrollRef: (scrollTo: (highlight: T_Highlight) => void) => void,
   pdfDocument: T_PDFJS_Document,
@@ -105,6 +106,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     pdfScaleValue: "auto",
     labelTransform: () => null,
     definitionTransform: () => null,
+    definitions: [],
   };
 
   state: State<T_HT> = {
@@ -172,6 +174,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
     if (prevProps.highlights !== this.props.highlights) {
       this.renderHighlights(this.props);
+    }
+    if (prevProps.definitions !== this.props.definitions) {
+      this.renderDefinitions(this.props);
     }
   }
 
@@ -409,6 +414,35 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
+  renderDefinitions(nextProps?: Props<T_HT>) {
+    const { definitionTransform, highlights } = nextProps || this.props;
+    const { pdfDocument } = this.props;
+    const highlightsByPage = this.groupHighlightsByPage(highlights);
+
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+      const definitionLayer = this.findOrCreateDefinitionLayer(pageNumber);
+
+      if (definitionLayer) {
+        ReactDom.render(
+          <div>
+            {(highlightsByPage[String(pageNumber)] || []).map(
+              ({ position, id, ...highlight }, index) => {
+                const viewportHighlight: T_ViewportHighlight<T_HT> = {
+                  id,
+                  position: this.scaledPositionToViewport(position),
+                  ...highlight
+                };
+
+                return definitionTransform(viewportHighlight, index);
+              }
+            )}
+          </div>,
+          definitionLayer
+        );
+      }
+    }
+  }
+
   hideTipAndSelection = () => {
     this.setState({
       tipPosition: null,
@@ -454,6 +488,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 
   onTextLayerRendered = () => {
     this.renderHighlights();
+    this.renderDefinitions();
   };
 
   scrollTo = (highlight: T_Highlight) => {
