@@ -93,7 +93,8 @@ type Props<T_HT> = {
     hideTipAndSelection: () => void,
     transformSelection: () => void
   ) => ?React$Element<*>,
-  enableAreaSelection: (event: MouseEvent) => boolean
+  enableAreaSelection: (event: MouseEvent) => boolean,
+  onInit: (pdfHighlighter: PdfHighlighter) => void
 };
 
 const EMPTY_ID = "empty-id";
@@ -106,6 +107,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     pdfScaleValue: "auto",
     labelTransform: () => null,
     definitionTransform: () => null,
+    onInit: () => null,
     definitions: [],
   };
 
@@ -197,6 +199,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     this.linkService.setDocument(pdfDocument);
     this.linkService.setViewer(this.viewer);
     this.viewer.setDocument(pdfDocument);
+    this.props.onInit(this);
 
     // debug
     window.PdfViewer = this;
