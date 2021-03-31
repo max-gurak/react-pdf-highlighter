@@ -519,6 +519,13 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     const selection: Selection = getWindow(container).getSelection();
     const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
 
+    if (selection && (
+      selection.baseNode.parentNode.className.includes("definition") ||
+      selection.baseNode.parentNode.className.includes("popover")
+    )) {
+      return null;
+    }
+
     if (selection.isCollapsed) {
       this.setState({ isCollapsed: true });
       return;
