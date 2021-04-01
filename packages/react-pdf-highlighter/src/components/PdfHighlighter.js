@@ -118,6 +118,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 
   state: State<T_HT> = {
     ghostHighlight: null,
+    selection: null,
     isCollapsed: true,
     range: null,
     scrolledToHighlightId: EMPTY_ID,
@@ -442,28 +443,32 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 
   renderSelections(nextProps?: Props<T_HT>) {
     const { selection } = this.state;
-
-    if (!(selection && selection.position)) {
-      return null;
-    }
-
     const { selectionTransform } = nextProps || this.props;
-    const selectionLayer = this.findOrCreateSelectionLayer(selection.position.pageNumber);
+    const { pdfDocument } = this.props;
+    window.getSelection().removeAllRanges();
 
-    if (selectionLayer) {
-      ReactDom.render(
-        <div>
-          {selectionTransform(
-            {
-              ...selection,
-              position: this.scaledPositionToViewport(selection.position),
-            }
-          )}
-        </div>,
-        selectionLayer
-      );
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+      const selectionLayer = this.findOrCreateSelectionLayer(pageNumber);
+
+      if (selectionLayer) {
+        const selectionTransform = selection && selection.position.pageNumber === pageNumber ?
+          selectionTransform({ ...selection,
+            position: this.scaledPositionToViewport(selection.position)
+          }) : [];
+
+        ReactDom.render(
+          <div>
+            {selectionTransform}
+          </div>,
+          selectionLayer
+        );
+      }
     }
   }
+
+  clearSelection = () => {
+    this.setState({ selection: null });
+  };
 
   hideTipAndSelection = () => {
     this.setState({
