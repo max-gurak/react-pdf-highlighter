@@ -185,9 +185,6 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     if (prevProps.definitions !== this.props.definitions) {
       this.renderDefinitions(this.props);
     }
-    if (prevProps.selections !== this.props.selections) {
-      this.renderSelections(this.props);
-    }
   }
 
   init() {
@@ -444,31 +441,27 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   renderSelections(nextProps?: Props<T_HT>) {
-    const { selectionTransform, selections } = nextProps || this.props;
-    const { pdfDocument } = this.props;
-    const selectionsByPage = this.groupHighlightsByPage(selections);
+    const { selection } = this.state;
 
-    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
-      const selectionLayer = this.findOrCreateSelectionLayer(pageNumber);
+    if (!(selection && selection.position)) {
+      return null;
+    }
 
-      if (selectionLayer) {
-        ReactDom.render(
-          <div>
-            {(selectionsByPage[String(pageNumber)] || []).map(
-              ({ position, id, ...highlight }, index) => {
-                const viewportHighlight: T_ViewportHighlight<T_HT> = {
-                  id,
-                  position: this.scaledPositionToViewport(position),
-                  ...highlight
-                };
+    const { selectionTransform } = nextProps || this.props;
+    const selectionLayer = this.findOrCreateSelectionLayer(selection.position.pageNumber);
 
-                return selectionTransform(viewportHighlight, index);
-              }
-            )}
-          </div>,
-          selectionLayer
-        );
-      }
+    if (selectionLayer) {
+      ReactDom.render(
+        <div>
+          {selectionTransform(
+            {
+              ...selection,
+              position: this.scaledPositionToViewport(selection.position),
+            }
+          )}
+        </div>,
+        selectionLayer
+      );
     }
   }
 
@@ -518,7 +511,6 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   onTextLayerRendered = () => {
     this.renderHighlights();
     this.renderDefinitions();
-    this.renderSelections();
   };
 
   scrollTo = (highlight: T_Highlight) => {
@@ -595,7 +587,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       range
     });
 
-    this.debouncedAfterSelection();
+    this.afterSelection();
+    // this.debouncedAfterSelection();
   };
 
   onScroll = () => {
@@ -660,21 +653,10 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       text: range.toString()
     };
     const scaledPosition = this.viewportPositionToScaled(viewportPosition);
-
-    this.setTip(
-      viewportPosition,
-      onSelectionFinished(
-        scaledPosition,
-        content,
-        () => this.hideTipAndSelection(),
-        () =>
-          this.setState(
-            {
-              ghostHighlight: { position: scaledPosition }
-            },
-            () => this.renderHighlights()
-          )
-      )
+    this.setState({ selection: { position: scaledPosition } }, this.renderSelections);
+    onSelectionFinished(
+      scaledPosition,
+      content
     );
   };
 
