@@ -159,7 +159,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       const { ownerDocument: doc } = ref;
       eventBus.on("textlayerrendered", this.onTextLayerRendered);
       eventBus.on("pagesinit", this.onDocumentReady);
-      doc.addEventListener("selectionchange", this.onSelectionChange);
+      doc.addEventListener("click", this.onSelectionChange);
       doc.addEventListener("keydown", this.handleKeyDown);
       doc.defaultView.addEventListener("resize", this.debouncedScaleValue);
       if (observer) observer.observe(ref);
@@ -167,7 +167,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       this.unsubscribe = () => {
         eventBus.off("pagesinit", this.onDocumentReady);
         eventBus.off("textlayerrendered", this.onTextLayerRendered);
-        doc.removeEventListener("selectionchange", this.onSelectionChange);
+        doc.removeEventListener("click", this.onSelectionChange);
         doc.removeEventListener("keydown", this.handleKeyDown);
         doc.defaultView.removeEventListener("resize", this.debouncedScaleValue);
         if (observer) observer.disconnect();
