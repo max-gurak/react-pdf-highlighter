@@ -451,14 +451,14 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       const selectionLayer = this.findOrCreateSelectionLayer(pageNumber);
 
       if (selectionLayer) {
-        const selectionTransform = selection && selection.position.pageNumber === pageNumber ?
+        const sTransform = selection && selection.position.pageNumber === pageNumber ?
           selectionTransform({ ...selection,
             position: this.scaledPositionToViewport(selection.position)
           }) : [];
 
         ReactDom.render(
           <div>
-            {selectionTransform}
+            {sTransform}
           </div>,
           selectionLayer
         );
