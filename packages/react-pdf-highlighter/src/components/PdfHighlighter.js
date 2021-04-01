@@ -61,6 +61,10 @@ type State<T_HT> = {
 };
 
 type Props<T_HT> = {
+  selectionTransform: (
+    definition: T_ViewportHighlight<T_HT>,
+    index: number
+  ) => React$Element<*>,
   definitionTransform: (
     definition: T_ViewportHighlight<T_HT>,
     index: number
@@ -82,6 +86,7 @@ type Props<T_HT> = {
     isScrolledTo: boolean
   ) => React$Element<*>,
   highlights: Array<T_HT>,
+  selections: Array<T_HT>,
   definitions: Array<T_HT>,
   onScrollChange: () => void,
   scrollRef: (scrollTo: (highlight: T_Highlight) => void) => void,
@@ -180,6 +185,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     if (prevProps.definitions !== this.props.definitions) {
       this.renderDefinitions(this.props);
     }
+    if (prevProps.selections !== this.props.selections) {
+      this.renderSelections(this.props);
+    }
   }
 
   init() {
@@ -245,6 +253,19 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     return findOrCreateContainerLayer(
       textLayer.textLayerDiv.parentNode,
       "PdfHighlighter__definitions-layer"
+    );
+  }
+
+  findOrCreateSelectionLayer(page: number) {
+    const { textLayer } = this.viewer.getPageView(page - 1) || {};
+
+    if (!textLayer) {
+      return null;
+    }
+
+    return findOrCreateContainerLayer(
+      textLayer.textLayerDiv.parentNode,
+      "PdfHighlighter__selections-layer"
     );
   }
 
@@ -422,6 +443,35 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
+  renderSelections(nextProps?: Props<T_HT>) {
+    const { selectionTransform, selections } = nextProps || this.props;
+    const { pdfDocument } = this.props;
+    const selectionsByPage = this.groupHighlightsByPage(selections);
+
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+      const selectionLayer = this.findOrCreateSelectionLayer(pageNumber);
+
+      if (selectionLayer) {
+        ReactDom.render(
+          <div>
+            {(selectionsByPage[String(pageNumber)] || []).map(
+              ({ position, id, ...highlight }, index) => {
+                const viewportHighlight: T_ViewportHighlight<T_HT> = {
+                  id,
+                  position: this.scaledPositionToViewport(position),
+                  ...highlight
+                };
+
+                return selectionTransform(viewportHighlight, index);
+              }
+            )}
+          </div>,
+          selectionLayer
+        );
+      }
+    }
+  }
+
   hideTipAndSelection = () => {
     this.setState({
       tipPosition: null,
@@ -468,6 +518,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   onTextLayerRendered = () => {
     this.renderHighlights();
     this.renderDefinitions();
+    this.renderSelections();
   };
 
   scrollTo = (highlight: T_Highlight) => {
