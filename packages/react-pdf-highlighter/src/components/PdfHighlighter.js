@@ -69,6 +69,10 @@ type Props<T_HT> = {
     definition: T_ViewportHighlight<T_HT>,
     index: number
   ) => React$Element<*>,
+  noteTransform: (
+    definition: T_ViewportHighlight<T_HT>,
+    index: number
+  ) => React$Element<*>,
   labelTransform: (
     highlight: T_ViewportHighlight<T_HT>,
     index: number
@@ -86,8 +90,8 @@ type Props<T_HT> = {
     isScrolledTo: boolean
   ) => React$Element<*>,
   highlights: Array<T_HT>,
-  selections: Array<T_HT>,
   definitions: Array<T_HT>,
+  notes: Array<T_HT>,
   onScrollChange: () => void,
   scrollRef: (scrollTo: (highlight: T_Highlight) => void) => void,
   pdfDocument: T_PDFJS_Document,
@@ -112,8 +116,10 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     pdfScaleValue: "auto",
     labelTransform: () => null,
     definitionTransform: () => null,
+    noteTransform: () => null,
     onInit: () => null,
     definitions: [],
+    notes: [],
   };
 
   state: State<T_HT> = {
@@ -186,6 +192,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     if (prevProps.definitions !== this.props.definitions) {
       this.renderDefinitions(this.props);
     }
+    if (prevProps.notes !== this.props.notes) {
+      this.renderNotes(this.props);
+    }
   }
 
   init() {
@@ -251,6 +260,19 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     return findOrCreateContainerLayer(
       textLayer.textLayerDiv.parentNode,
       "PdfHighlighter__definitions-layer"
+    );
+  }
+
+  findOrCreateNotesLayer(page: number) {
+    const { textLayer } = this.viewer.getPageView(page - 1) || {};
+
+    if (!textLayer) {
+      return null;
+    }
+
+    return findOrCreateContainerLayer(
+      textLayer.textLayerDiv.parentNode,
+      "PdfHighlighter__notes-layer"
     );
   }
 
@@ -441,6 +463,35 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
+  renderNotes(nextProps?: Props<T_HT>) {
+    const { noteTransform, notes } = nextProps || this.props;
+    const { pdfDocument } = this.props;
+    const notesByPage = this.groupHighlightsByPage(notes);
+
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+      const notesLayer = this.findOrCreateNotesLayer(pageNumber);
+
+      if (notesLayer) {
+        ReactDom.render(
+          <div>
+            {(notesByPage[String(pageNumber)] || []).map(
+              ({ position, id, ...highlight }, index) => {
+                const viewportHighlight: T_ViewportHighlight<T_HT> = {
+                  id,
+                  position: this.scaledPositionToViewport(position),
+                  ...highlight
+                };
+
+                return noteTransform(viewportHighlight, index);
+              }
+            )}
+          </div>,
+          notesLayer
+        );
+      }
+    }
+  }
+
   renderSelections(nextProps?: Props<T_HT>) {
     const { selection } = this.state;
     const { selectionTransform } = nextProps || this.props;
@@ -514,8 +565,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   };
 
   onTextLayerRendered = () => {
-    this.renderHighlights();
+    this.renderNotes();
     this.renderDefinitions();
+    this.renderHighlights();
   };
 
   scrollTo = (highlight: T_Highlight) => {
