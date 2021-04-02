@@ -496,7 +496,6 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     const { selection } = this.state;
     const { selectionTransform } = nextProps || this.props;
     const { pdfDocument } = this.props;
-    window.getSelection().removeAllRanges();
 
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
       const selectionLayer = this.findOrCreateSelectionLayer(pageNumber);
@@ -711,6 +710,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     };
     const scaledPosition = this.viewportPositionToScaled(viewportPosition);
     this.setState({ selection: { position: scaledPosition } }, this.renderSelections);
+    window.getSelection().removeAllRanges();
     onSelectionFinished(
       scaledPosition,
       content
