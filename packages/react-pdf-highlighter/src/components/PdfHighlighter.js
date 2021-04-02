@@ -467,7 +467,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   clearSelection = () => {
-    this.setState({ selection: null });
+    this.setState({ selection: null }, this.renderSelections);
   };
 
   hideTipAndSelection = () => {
