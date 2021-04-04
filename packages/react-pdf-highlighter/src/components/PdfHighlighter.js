@@ -195,6 +195,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     if (prevProps.notes !== this.props.notes) {
       this.renderNotes(this.props);
     }
+    if (prevProps.pdfScaleValue !== this.props.pdfScaleValue) {
+      this.handleScaleValue();
+    }
   }
 
   init() {
