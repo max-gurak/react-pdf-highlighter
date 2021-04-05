@@ -96,6 +96,7 @@ type Props<T_HT> = {
   scrollRef: (scrollTo: (highlight: T_Highlight) => void) => void,
   pdfDocument: T_PDFJS_Document,
   pdfScaleValue: string,
+  withoutSelection: boolean,
   onSelectionFinished: (
     position: T_ScaledPosition,
     content: { text?: string, image?: string },
@@ -114,6 +115,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 > {
   static defaultProps = {
     pdfScaleValue: "auto",
+    withoutSelection: false,
     labelTransform: () => null,
     definitionTransform: () => null,
     noteTransform: () => null,
@@ -684,7 +686,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   };
 
   afterSelection = () => {
-    const { onSelectionFinished } = this.props;
+    const { onSelectionFinished, withoutSelection } = this.props;
 
     const { isCollapsed, range } = this.state;
 
@@ -712,8 +714,12 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       text: range.toString()
     };
     const scaledPosition = this.viewportPositionToScaled(viewportPosition);
-    this.setState({ selection: { position: scaledPosition } }, this.renderSelections);
-    window.getSelection().removeAllRanges();
+
+    if (!withoutSelection) {
+      this.setState({ selection: { position: scaledPosition } }, this.renderSelections);
+      window.getSelection().removeAllRanges();
+    }
+
     onSelectionFinished(
       scaledPosition,
       content
