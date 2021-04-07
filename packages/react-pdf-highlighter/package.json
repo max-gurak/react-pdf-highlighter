@@ -1,6 +1,6 @@
 {
   "name": "react-pdf-annotations",
-  "version": "1.0.20",
+  "version": "1.0.22",
   "description": "Set of React components for PDF annotation",
   "main": "build/index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "lodash.debounce": "^4.0.8",
-    "pdfjs-dist": "^2.6.347",
+    "pdfjs-dist": "^2.7.570",
     "react-pointable": "^1.1.1",
     "react-rnd": "^10.1.10"
   },
@@ -25,6 +25,8 @@
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.10.5",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.13.8",
+    "@babel/plugin-proposal-optional-chaining": "^7.13.12",
     "@babel/preset-flow": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
     "flow-bin": "^0.130.0",
