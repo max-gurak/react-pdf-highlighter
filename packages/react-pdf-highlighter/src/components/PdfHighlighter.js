@@ -41,6 +41,7 @@ import type {
   T_PDFJS_Document,
   T_PDFJS_LinkService
 } from "../types";
+import getClientRectsNew from '../lib/get-client-rects-new';
 
 type T_ViewportHighlight<T_HT> = { position: T_Position } & T_HT;
 
@@ -119,6 +120,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     labelTransform: () => null,
     definitionTransform: () => null,
     noteTransform: () => null,
+    selectionTransform: () => null,
     onInit: () => null,
     definitions: [],
     notes: [],
@@ -155,6 +157,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
   }
 
   componentDidMount() {
+    console.log("PdfHighlighter, ", "componentDidMount --- ");
     this.init();
   }
 
@@ -700,15 +703,17 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       return;
     }
 
-    const rects = getClientRects(range, page.node);
+    // const rects = getClientRects(range, fromPage, true);
+    const rects = getClientRectsNew(range, page, true, this);
 
     if (rects.length === 0) {
       return;
     }
 
     const boundingRect = getBoundingRect(rects);
-
     const viewportPosition = { boundingRect, rects, pageNumber: page.number };
+
+    console.log("test, ", "afterSelection --- ", boundingRect, viewportPosition);
 
     const content = {
       text: range.toString()

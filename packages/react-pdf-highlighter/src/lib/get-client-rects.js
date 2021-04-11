@@ -10,7 +10,6 @@ const getClientRects = (
   shouldOptimize: boolean = true
 ): Array<T_LTWH> => {
   let clientRects = Array.from(range.getClientRects());
-
   const offset = containerEl.getBoundingClientRect();
 
   const rects = clientRects.map(rect => {
