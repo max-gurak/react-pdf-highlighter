@@ -20,6 +20,7 @@ export const viewportToScaled = (
 
     x2: rect.left + rect.width,
     y2: rect.top + rect.height,
+    page: rect.page,
 
     width,
     height
