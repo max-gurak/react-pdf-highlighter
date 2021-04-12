@@ -507,12 +507,12 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
-  renderSelections(nextProps?: Props<T_HT>, range, page, scaledRects) {
+  renderSelections(nextProps?: Props<T_HT>, range, page, rects) {
     const { selectionTransform } = nextProps || this.props;
     const selectionLayer = this.findOrCreateSelectionLayer(page);
 
     if (selectionLayer) {
-      const sTransform = range ? selectionTransform({ range, page, scaledRects }) : [];
+      const sTransform = range ? selectionTransform({ range, page, rects }) : [];
 
       ReactDom.render(
         <div>
@@ -626,7 +626,7 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     const selection: Selection = getWindow(container).getSelection();
     const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
 
-    if (selection && (
+    if (selection && selection.baseNode && selection.baseNode.parentNode && (
       selection.baseNode.parentNode.className.includes("definition") ||
       selection.baseNode.parentNode.className.includes("body") ||
       selection.baseNode.parentNode.className.includes("body-title") ||
