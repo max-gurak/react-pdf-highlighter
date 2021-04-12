@@ -30,7 +30,7 @@ const getClientRectsNew = (
     left: lRect.left + endPageView.div.scrollLeft - endPageView.div.getBoundingClientRect().left,
     width: lRect.width,
     height: lRect.height,
-    page: startPage.number,
+    page: endPage.number,
   });
   
   return result;
