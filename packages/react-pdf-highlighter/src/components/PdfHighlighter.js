@@ -361,6 +361,13 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     };
   }
 
+  viewportRectsToScaled(rects : T_Position): T_ScaledPosition {
+    return [
+      viewportToScaled(rects[0], this.viewer.getPageView(rects[0].page - 1).viewport),
+      viewportToScaled(rects[1], this.viewer.getPageView(rects[1].page - 1).viewport)
+    ];
+  }
+
   screenshot(position: T_LTWH, pageNumber: number) {
     const canvas = this.viewer.getPageView(pageNumber - 1).canvas;
 
@@ -500,12 +507,12 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
-  renderSelections(nextProps?: Props<T_HT>, range, page) {
+  renderSelections(nextProps?: Props<T_HT>, range, page, scaledRects) {
     const { selectionTransform } = nextProps || this.props;
     const selectionLayer = this.findOrCreateSelectionLayer(page);
 
     if (selectionLayer) {
-      const sTransform = page ? selectionTransform({ range, page }) : [];
+      const sTransform = range ? selectionTransform({ range, page, scaledRects }) : [];
 
       ReactDom.render(
         <div>
@@ -516,9 +523,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
-  clearSelection = () => {
+  clearSelection = (range, startPage) => {
     // this.setState({ selection: null }, this.renderSelections);
-    this.renderSelections(this.props, false, false);
+    this.renderSelections(this.props, range, startPage);
   };
 
   hideTipAndSelection = () => {
@@ -693,11 +700,15 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
       return;
     }
 
-    const page = getPageFromRange(range);
+    const [startPage, endPage] = getPageFromRange(range);
 
-    if (!page) {
+
+    if (!startPage || !endPage) {
       return;
     }
+
+    const rects = getClientRectsNew(range, [startPage, endPage], this);
+    const scaledRects = this.viewportRectsToScaled(rects);
 
     // const rects = getClientRects(range, fromPage, true);
     // const rects = getClientRectsNew(range, page, true, this);
@@ -721,8 +732,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     //   window.getSelection().removeAllRanges();
     // }
 
-    onSelectionFinished(range);
-    this.renderSelections(this.props, range, page);
+    onSelectionFinished({ range, startPage, endPage, rects: scaledRects });
+    this.renderSelections(this.props, range, startPage.number, scaledRects);
   };
 
   debouncedAfterSelection: () => void = debounce(this.afterSelection, 500);

@@ -2,46 +2,38 @@
 
 import type { T_LTWH } from "../types.js";
 
-import optimizeClientRects from "./optimize-client-rects";
-
 const getClientRectsNew = (
   range: Range,
-  startElement,
-  shouldOptimize: boolean = true,
+  pages,
   pdfViewer
 ): Array<T_LTWH> => {
   const clientRects = Array.from(range.getClientRects());
-  const filteredRects = clientRects.filter(el => el.height > 0 && el.height < 50);
+  const [startPage, endPage] = pages;
+  
+  const filteredRects = clientRects.filter(el => el.height > 0 && el.height < 100);
   const result = [];
-  let pageNumber = startElement.number - 1;
-  let page = pdfViewer.viewer.getPageView(pageNumber);
-  let offset = page.div.getBoundingClientRect();
-  let maxPagesHeight = page.viewport.height;
+  const startPageView = pdfViewer.viewer.getPageView(startPage.number - 1);
+  const endPageView = pdfViewer.viewer.getPageView(endPage.number - 1);
+  const fRect = filteredRects[0];
+  const lRect = filteredRects[filteredRects.length - 1];
+  
+  result.push({
+    top: fRect.top + startPageView.div.scrollTop - startPageView.div.getBoundingClientRect().top,
+    left: fRect.left + startPageView.div.scrollLeft - startPageView.div.getBoundingClientRect().left,
+    width: fRect.width,
+    height: fRect.height,
+    page: startPage.number,
+  });
 
-  for (let i = 0, l = filteredRects.length; i < l; i++) {
-    const rect = filteredRects[i];
-    const item = {
-      top: rect.top + page.div.scrollTop - offset.top,
-      left: rect.left + page.div.scrollLeft - offset.left,
-      width: rect.width,
-      height: rect.height,
-      page: pageNumber,
-    };
-
-    if (item.top > maxPagesHeight) {
-      pageNumber++;
-      page = pdfViewer.viewer.getPageView(pageNumber);
-      offset = page.div.getBoundingClientRect();
-      maxPagesHeight = page.viewport.height;
-
-      i--;
-      continue;
-    }
-
-    result.push(item);
-  }
-
-  return shouldOptimize ? optimizeClientRects(result) : result;
+  result.push({
+    top: lRect.top + endPageView.div.scrollTop - endPageView.div.getBoundingClientRect().top,
+    left: lRect.left + endPageView.div.scrollLeft - endPageView.div.getBoundingClientRect().left,
+    width: lRect.width,
+    height: lRect.height,
+    page: startPage.number,
+  });
+  
+  return result;
 };
 
 export default getClientRectsNew;

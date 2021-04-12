@@ -24,13 +24,14 @@ export const getPageFromElement = (target: HTMLElement) => {
 };
 
 export const getPageFromRange = (range: Range) => {
-  const parentElement = range.startContainer.parentElement;
+  const startParentElement = range.startContainer.parentElement;
+  const endParentElement = range.endContainer.parentElement;
 
-  if (!isHTMLElement(parentElement)) {
+  if (!isHTMLElement(startParentElement) || !isHTMLElement(endParentElement)) {
     return;
   }
 
-  return getPageFromElement(asElement(parentElement));
+  return [getPageFromElement(asElement(startParentElement)), getPageFromElement(asElement(endParentElement))];
 };
 
 export const findOrCreateContainerLayer = (
