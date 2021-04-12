@@ -500,32 +500,25 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
   }
 
-  renderSelections(nextProps?: Props<T_HT>) {
-    const { selection } = this.state;
+  renderSelections(nextProps?: Props<T_HT>, range, page) {
     const { selectionTransform } = nextProps || this.props;
-    const { pdfDocument } = this.props;
+    const selectionLayer = this.findOrCreateSelectionLayer(page);
 
-    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
-      const selectionLayer = this.findOrCreateSelectionLayer(pageNumber);
+    if (selectionLayer) {
+      const sTransform = page ? selectionTransform({ range, page }) : [];
 
-      if (selectionLayer) {
-        const sTransform = selection && selection.position.pageNumber === pageNumber ?
-          selectionTransform({ ...selection,
-            position: this.scaledPositionToViewport(selection.position)
-          }) : [];
-
-        ReactDom.render(
-          <div>
-            {sTransform}
-          </div>,
-          selectionLayer
-        );
-      }
+      ReactDom.render(
+        <div>
+          {sTransform}
+        </div>,
+        selectionLayer
+      );
     }
   }
 
   clearSelection = () => {
-    this.setState({ selection: null }, this.renderSelections);
+    // this.setState({ selection: null }, this.renderSelections);
+    this.renderSelections(this.props, false, false);
   };
 
   hideTipAndSelection = () => {
@@ -628,6 +621,9 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
 
     if (selection && (
       selection.baseNode.parentNode.className.includes("definition") ||
+      selection.baseNode.parentNode.className.includes("body") ||
+      selection.baseNode.parentNode.className.includes("body-title") ||
+      selection.baseNode.parentNode.className.includes("body-description") ||
       selection.baseNode.parentNode.className.includes("popover")
     )) {
       return null;
@@ -704,31 +700,29 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     }
 
     // const rects = getClientRects(range, fromPage, true);
-    const rects = getClientRectsNew(range, page, true, this);
+    // const rects = getClientRectsNew(range, page, true, this);
+    //
+    // if (rects.length === 0) {
+    //   return;
+    // }
+    //
+    // const boundingRect = getBoundingRect(rects);
+    // const viewportPosition = { boundingRect, rects, pageNumber: page.number };
+    //
+    // console.log("test, ", "afterSelection --- ", boundingRect, viewportPosition);
+    //
+    // const content = {
+    //   text: range.toString()
+    // };
+    // const scaledPosition = this.viewportPositionToScaled(viewportPosition);
+    //
+    // if (!withoutSelection) {
+    //   this.setState({ selection: { position: scaledPosition } }, this.renderSelections);
+    //   window.getSelection().removeAllRanges();
+    // }
 
-    if (rects.length === 0) {
-      return;
-    }
-
-    const boundingRect = getBoundingRect(rects);
-    const viewportPosition = { boundingRect, rects, pageNumber: page.number };
-
-    console.log("test, ", "afterSelection --- ", boundingRect, viewportPosition);
-
-    const content = {
-      text: range.toString()
-    };
-    const scaledPosition = this.viewportPositionToScaled(viewportPosition);
-
-    if (!withoutSelection) {
-      this.setState({ selection: { position: scaledPosition } }, this.renderSelections);
-      window.getSelection().removeAllRanges();
-    }
-
-    onSelectionFinished(
-      scaledPosition,
-      content
-    );
+    onSelectionFinished(range);
+    this.renderSelections(this.props, range, page);
   };
 
   debouncedAfterSelection: () => void = debounce(this.afterSelection, 500);
