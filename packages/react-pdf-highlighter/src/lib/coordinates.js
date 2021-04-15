@@ -69,6 +69,7 @@ export const scaledToViewport = (
     left: x1,
     top: y1,
     width: x2 - x1,
-    height: y2 - y1
+    height: y2 - y1,
+    page: scaled.page,
   };
 };

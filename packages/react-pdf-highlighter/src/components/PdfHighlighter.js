@@ -335,10 +335,10 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
     };
   }
 
-  viewportRectsToScaled(rects: T_Position, pageNumber) {
-    return (rects || [])
-      .filter(rect => rect.page === pageNumber)
-      .map(rect => viewportToScaled(rect, viewport));
+  viewportRectsToScaled(rects: T_Position) {
+    const viewport = this.viewer.getPageView(pageNumber).viewport;
+
+   return (rects || []).map(rect => scaledToViewport(rect, viewport));
   }
 
   viewportSelectionRectsToScaled(rects : T_Position) {
@@ -371,7 +371,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
               ({ rects, id, ...highlight }, index) => {
                 const viewportHighlight: T_ViewportHighlight<T_HT> = {
                   id,
-                  rects: this.viewportRectsToScaled(rects, pageNumber - 1),
+                  rects: this.viewportRectsToScaled(rects),
+                  actualPage: pageNumber - 1,
                   ...highlight
                 };
 
@@ -396,7 +397,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
               ({ rects, id, ...highlight }, index) => {
                 const viewportHighlight: T_ViewportHighlight<T_HT> = {
                   id,
-                  rects: this.viewportRectsToScaled(rects, pageNumber - 1),
+                  rects: this.viewportRectsToScaled(rects),
+                  actualPage: pageNumber - 1,
                   ...highlight
                 };
 
@@ -425,7 +427,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
               ({ rects, id, ...highlight }, index) => {
                 const viewportHighlight: T_ViewportHighlight<T_HT> = {
                   id,
-                  rects: this.viewportRectsToScaled(rects, pageNumber - 1),
+                  rects: this.viewportRectsToScaled(rects),
+                  actualPage: pageNumber - 1,
                   ...highlight
                 };
 
@@ -454,7 +457,8 @@ class PdfHighlighter<T_HT: T_Highlight> extends PureComponent<
               ({ rects, id, ...highlight }, index) => {
                 const viewportHighlight: T_ViewportHighlight<T_HT> = {
                   id,
-                  rects: this.viewportRectsToScaled(rects, pageNumber - 1),
+                  rects: this.viewportRectsToScaled(rects),
+                  actualPage: pageNumber - 1,
                   ...highlight
                 };
 
